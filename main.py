@@ -1,0 +1,56 @@
+import numpy as np
+
+from mtse import *
+indices = np.random.randint(0, 1800, 600)
+indices = np.sort(indices)
+y1 = np.loadtxt('data/hr1.txt')
+y1 = y1 - np.mean(y1)
+y1 = np.loadtxt('data/hr1.txt')
+y1 = y1 - np.mean(y1)
+y2 = np.loadtxt('data/hr2.txt')
+y2 = y2 - np.mean(y2)
+# y1 = np.sin(2*np.pi*np.linspace(0, 1800, 1800))
+# y2 = np.sin(4*np.pi*np.linspace(0, 1800, 1800))
+t = np.linspace(0, 1800, len(y1))
+t = t[indices]
+y1 = y1[indices]
+y2 = y2[indices]
+dataset = mogptk.DataSet( mogptk.Data(t, y1, name='First channel'),
+                          mogptk.Data(t, y2, name='Second channel')
+                          )
+Q = 1
+Rq = 1
+dataset.plot_spectrum(maxfreq=2);
+model = mogptk.SM_LMC(dataset, Q=Q, Rq=Rq)
+my_mtse = mtse(space_input=t, space_output=[y1,y2], Q=Q, Rq=Rq, sp_d=0,model= model)
+# my_mtse.plot_spectrum()
+my_mtse.set_freqspace(0.03)
+my_mtse.set_labels(np.array(['y1', 'y2']))
+print("Initial parameters:")
+weight, sigma, gamma, theta, sigma_n = my_mtse.capture_output_and_save()
+print('==========')
+print("Weight: ", weight)
+print("Sigma: ", sigma)
+print("Gamma: ", gamma)
+print("Theta: ", theta)
+print('sigma_n: ', sigma_n)
+print('============')
+my_mtse.train()
+# my_mtse.plot_time_posterior()
+print("Final parameters:")
+weight, sigma, gamma, theta, sigma_n = my_mtse.capture_output_and_save()
+print('==========')
+print("Weight: ", weight)
+print("Sigma: ", sigma)
+print("Gamma: ", gamma)
+print("Theta: ", theta)
+print('sigma_n: ', sigma_n)
+print('============')
+my_mtse.compute_moments()
+my_mtse.plot_freq_posterior_real()
+my_mtse.plot_freq_posterior_imag()
+my_mtse.plot_power_spectral_density(15)
+my_mtse.plot_time_posterior()
+my_mtse.plot_MT_kernel()
+my_mtse.plot_time_posterior_mogp()
+plt.show()
